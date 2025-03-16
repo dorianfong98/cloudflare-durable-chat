@@ -31,7 +31,18 @@
 			"class_name": "ChatRoom" // The exported Durable Object class
 		  }
 		]
-	  }
+	  },
+	  // -------------------------
+  // NEW: MIGRATIONS SECTION
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_classes": [
+        "ChatRoom"
+      ] //to match exactly the class_name in the durable_objects binding and the actual exported class name
+    }
+  ]
+  // -------------------------
 
 	/**
 	 * Environment Variables
