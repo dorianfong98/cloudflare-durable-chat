@@ -26,7 +26,7 @@
 	 "durable_objects": {
 		"bindings": [
 		  {
-			//A binding named CHAT_ROOM pointing to a class named ChatRoom.
+			//A binding named CHAT_ROOM, pointing to a class named ChatRoom.
 			"name": "CHAT_ROOM",      // The binding name in your code
 			"class_name": "ChatRoom" // The exported Durable Object class
 		  }
