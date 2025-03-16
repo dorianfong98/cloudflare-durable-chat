@@ -10,9 +10,40 @@
  *
  * Learn more at https://developers.cloudflare.com/workers/
  */
+import { ChatRoom } from "./ChatRoom";
 
 export default {
-	async fetch(request, env, ctx): Promise<Response> {
-		return new Response('Hello World!');
+	async fetch(request: Request, env: any) {
+	  const url = new URL(request.url);
+	  // Example: /room/<NAME>/websocket => ["", "room", "<NAME>", "websocket"]
+	  const pathSegments = url.pathname.split("/");
+  
+	  // Check if the request matches /room/xxx/websocket
+	  if (pathSegments[1] === "room" && pathSegments[3] === "websocket") {
+		const roomName = pathSegments[2];
+		
+		//GET requests with Upgrade: websocket
+		if (request.method === "GET" && request.headers.get("Upgrade") === "websocket") {
+		  // Map the roomName to a DO instance
+		  const id = env.CHAT_ROOM.idFromName(roomName);	//the binding name from wrangler.jsonc
+		  const objStub = env.CHAT_ROOM.get(id);
+		  
+		  // Forward the request to the DO's fetch method
+		  return objStub.fetch(request);
+
+		  //Now all “WebSocket upgrade” requests under the path /room/XXX/websocket  
+		  //is routed to ChatRoom Durable Object
+
+		}
+	  }
+  
+	  // If the path doesn't match, return 404
+	  return new Response("Not found", { status: 404 });
 	},
-} satisfies ExportedHandler<Env>;
+  };
+
+// export default {
+// 	async fetch(request, env, ctx): Promise<Response> {
+// 		return new Response('Hello World!');
+// 	},
+// } satisfies ExportedHandler<Env>;
