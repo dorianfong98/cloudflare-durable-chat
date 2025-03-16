@@ -12,6 +12,10 @@
  */
 import { ChatRoom } from "./ChatRoom";
 
+// 1) Re-export the DO class so that Wrangler sees it's exported by the entrypoint
+export { ChatRoom };
+
+// 2) The usual fetch handler for the Worker
 export default {
 	async fetch(request: Request, env: any) {
 	  const url = new URL(request.url);
@@ -24,7 +28,7 @@ export default {
 		
 		//GET requests with Upgrade: websocket
 		if (request.method === "GET" && request.headers.get("Upgrade") === "websocket") {
-		  // Map the roomName to a DO instance
+		  // Map the roomName to a Durable Object (DO) instance
 		  const id = env.CHAT_ROOM.idFromName(roomName);	//the binding name from wrangler.jsonc
 		  const objStub = env.CHAT_ROOM.get(id);
 		  
