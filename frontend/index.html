@@ -1,0 +1,142 @@
+<!DOCTYPE html> <!-- frontend/index.html -->
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Cloudflare Chat</title>
+  <style>
+    /* Some basic styling for the chat layout */
+    body {
+      font-family: sans-serif;
+      max-width: 600px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+
+    h1 {
+      text-align: center;
+    }
+
+    #messages {
+      border: 1px solid #ccc; 
+      height: 300px; 
+      overflow-y: scroll; 
+      padding: 10px; 
+      margin-bottom: 10px;
+    }
+
+    #messages div {
+      margin: 5px 0;
+      background: #f1f1f1;
+      padding: 5px;
+      border-radius: 4px;
+    }
+
+    #controls {
+      display: flex;
+      gap: 10px;
+    }
+
+    #msgInput {
+      flex: 1;
+      padding: 8px;
+    }
+
+    #sendBtn {
+      padding: 8px 16px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>Cloudflare Chat - General Room</h1>
+
+  <!-- Display the chat messages -->
+  <div id="messages"></div>
+
+  <!-- User input controls -->
+  <div id="controls">
+    <input type="text" id="msgInput" placeholder="Type a message...">
+    <button id="sendBtn">Send</button>
+  </div>
+
+  <script>
+    /*********************************************
+     *  1) Configure the WebSocket connection   *
+     *********************************************/
+
+    const ROOM_NAME = 'general';
+    const WORKER_SUBDOMAIN = 'https://cloudflare-chat.burrito-bot.workers.dev/'; 
+    const socketUrl = `wss://cloudflare-chat.https://cloudflare-chat.burrito-bot.workers.dev/.workers.dev/room/${ROOM_NAME}/websocket`;
+
+    // Create a new WebSocket instance
+    const socket = new WebSocket(socketUrl);
+
+    /*********************************************
+     *  2) Handle WebSocket events              *
+     *********************************************/
+
+    // When the connection opens successfully
+    socket.onopen = () => {
+      console.log(`Connected to "${ROOM_NAME}" room`);
+    };
+
+    // When a message arrives from the server (via Durable Object)
+    socket.onmessage = (event) => {
+      const message = event.data;
+      displayMessage(message);
+    };
+
+    // When the connection closes or encounters an error
+    socket.onclose = () => {
+      console.log('WebSocket connection closed');
+    };
+    socket.onerror = (err) => {
+      console.error('WebSocket error:', err);
+    };
+
+    /*********************************************
+     *  3) Send messages to the chat room       *
+     *********************************************/
+
+    const msgInput = document.getElementById('msgInput');
+    const sendBtn = document.getElementById('sendBtn');
+
+    // Send a message when the user clicks the "Send" button
+    sendBtn.addEventListener('click', () => {
+      sendMessage();
+    });
+
+    // Optionally, send message on Enter key
+    msgInput.addEventListener('keyup', (e) => {
+      if (e.key === 'Enter') {
+        sendMessage();
+      }
+    });
+
+    // Sends your typed text to the Worker, which then distributes it to all connected clients.
+    // Called when you click “Send” or press Enter.
+    function sendMessage() {
+      const text = msgInput.value.trim();
+      if (text && socket.readyState === WebSocket.OPEN) {
+        socket.send(text);
+        msgInput.value = '';
+      }
+    }
+
+    /*********************************************
+     *  4) Display incoming messages in the UI  *
+     *********************************************/
+
+    const messagesEl = document.getElementById('messages');
+
+    // Appends the incoming message to the chat area.
+    function displayMessage(msg) {
+      const msgDiv = document.createElement('div');
+      msgDiv.textContent = msg;
+      messagesEl.appendChild(msgDiv);
+      // Scroll to the bottom
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+  </script>
+</body>
+</html>
